@@ -3,140 +3,284 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Công Cụ Tạo Mã QR Có Logo Vĩnh Viễn</title>
-    <!-- Sử dụng thư viện qrcode hiện đại hỗ trợ vẽ lên Canvas -->
+    <title>Công Cụ Tạo Mã QR Cao Cấp - Tùy Biến Màu Sắc & Logo</title>
     <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
     <style>
+        :root {
+            --primary-color: #4f46e5;
+            --primary-hover: #4338ca;
+            --background-color: #f8fafc;
+            --card-background: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: #e2e8f0;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
-            color: #333;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--background-color);
+            color: var(--text-main);
+            margin: 0;
+            padding: 40px 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
+            box-sizing: border-box;
+        }
+
+        .app-container {
+            background-color: var(--card-background);
+            padding: 35px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+            width: 100%;
+            max-width: 480px;
+            box-sizing: border-box;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        header h1 {
+            font-size: 24px;
+            color: var(--text-main);
+            margin: 0 0 8px 0;
+            font-weight: 700;
+        }
+
+        header p {
+            font-size: 14px;
+            color: var(--text-muted);
             margin: 0;
         }
-        .container {
-            background: #fff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-            width: 100%;
-            max-width: 400px;
-            text-align: center;
-        }
-        h2 {
-            margin-top: 0;
-            color: #2c3e50;
-        }
+
         .form-group {
-            margin-bottom: 15px;
-            text-align: left;
+            margin-bottom: 20px;
         }
-        label {
+
+        .form-group label {
             display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
             font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-main);
         }
-        input[type="text"], input[type="file"] {
+
+        .form-control {
             width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
+            padding: 12px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            font-size: 15px;
+            background-color: #fff;
+            color: var(--text-main);
+            outline: none;
+            transition: all 0.2s ease;
             box-sizing: border-box;
-            font-size: 14px;
         }
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #27ae60;
-            color: white;
+
+        .form-control:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+
+        /* Hàng chọn màu sắc */
+        .color-picker-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .color-picker-wrapper {
+            flex: 1;
+        }
+
+        .color-input-container {
+            display: flex;
+            align-items: center;
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 6px 10px;
+            background-color: #fff;
+        }
+
+        .color-input-container input[type="color"] {
             border: none;
-            border-radius: 6px;
+            background: none;
+            width: 35px;
+            height: 35px;
             cursor: pointer;
+            padding: 0;
+            margin-right: 10px;
+        }
+
+        .color-input-container span {
+            font-size: 14px;
+            font-family: monospace;
+            color: var(--text-muted);
+        }
+
+        /* Khu vực hiển thị kết quả */
+        .preview-zone {
+            margin-top: 30px;
+            padding-top: 25px;
+            border-top: 1px dashed var(--border-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .canvas-holder {
+            background-color: #ffffff;
+            padding: 15px;
+            border-radius: 14px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+            display: none; /* Hiện khi bấm Tạo */
+            margin-bottom: 20px;
+        }
+
+        canvas {
+            display: block;
+            max-width: 100%;
+            height: auto !important;
+        }
+
+        /* Nút bấm hành động */
+        .btn {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
             font-size: 16px;
-            font-weight: bold;
-            transition: background 0.3s;
-            margin-bottom: 10px;
-        }
-        button:hover {
-            background-color: #219150;
-        }
-        .btn-download {
-            background-color: #2980b9;
-            display: none; /* Ẩn nút tải về cho đến khi có mã QR */
-        }
-        .btn-download:hover {
-            background-color: #1c5980;
-        }
-        #canvas-container {
-            margin-top: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
             display: flex;
             justify-content: center;
+            align-items: center;
+            gap: 8px;
         }
-        canvas {
-            border-radius: 8px;
-            border: 1px solid #eee;
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            margin-bottom: 12px;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background-color: #f1f5f9;
+            color: #334155;
+            border: 1px solid #cbd5e1;
+            display: none; /* Hiện sau khi tạo thành công */
+        }
+
+        .btn-secondary:hover {
+            background-color: #e2e8f0;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h2>Tạo Mã QR Cá Nhân</h2>
-    
+<div class="app-container">
+    <header>
+        <h1>Trình Tạo Mã QR Cá Nhân</h1>
+        <p>Tự tạo mã QR vĩnh viễn, bảo mật, tùy chỉnh màu sắc và logo</p>
+    </header>
+
     <div class="form-group">
-        <label for="urlInput">Đường link trang web (URL):</label>
-        <input type="text" id="urlInput" placeholder="Ví dụ: https://my-website.com">
+        <label for="urlInput">Liên kết trang web hoặc văn bản:</label>
+        <input type="text" id="urlInput" class="form-control" placeholder="https://example.com hoặc nội dung của bạn..." value="https://">
     </div>
 
     <div class="form-group">
-        <label for="logoInput">Tải lên Logo (Tùy chọn):</label>
-        <input type="file" id="logoInput" accept="image/png, image/jpeg, image/webp">
+        <div class="color-picker-row">
+            <div class="color-picker-wrapper">
+                <label>Màu mã QR:</label>
+                <div class="color-input-container">
+                    <input type="color" id="darkColor" value="#1e293b" onchange="updateColorText('darkColor', 'darkText')">
+                    <span id="darkText">#1E293B</span>
+                </div>
+            </div>
+            <div class="color-picker-wrapper">
+                <label>Màu nền:</label>
+                <div class="color-input-container">
+                    <input type="color" id="lightColor" value="#ffffff" onchange="updateColorText('lightColor', 'lightText')">
+                    <span id="lightText">#FFFFFF</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <button onclick="generateQR()">Tạo Mã QR</button>
-    <button id="downloadBtn" class="btn-download" onclick="downloadQR()">Tải Ảnh QR Về Máy</button>
+    <div class="form-group">
+        <label for="logoInput">Thêm logo vào giữa (Tùy chọn):</label>
+        <input type="file" id="logoInput" class="form-control" accept="image/png, image/jpeg, image/webp">
+    </div>
 
-    <div id="canvas-container">
-        <canvas id="qrCanvas" style="display:none;"></canvas>
+    <button class="btn btn-primary" onclick="generatePremiumQR()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        Tạo Mã QR Của Bạn
+    </button>
+
+    <div class="preview-zone">
+        <div class="canvas-holder" id="canvasHolder">
+            <canvas id="qrCanvas"></canvas>
+        </div>
+        <button class="btn btn-secondary" id="downloadBtn" onclick="downloadPremiumQR()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Tải Ảnh QR Độ Phân Giải Cao (.PNG)
+        </button>
     </div>
 </div>
 
 <script>
-    function generateQR() {
+    // Hàm cập nhật mã màu text hiển thị cạnh ô chọn màu
+    function updateColorText(pickerId, textId) {
+        const color = document.getElementById(pickerId).value;
+        document.getElementById(textId).innerText = color.toUpperCase();
+    }
+
+    function generatePremiumQR() {
         const url = document.getElementById('urlInput').value.trim();
+        const darkColor = document.getElementById('darkColor').value;
+        const lightColor = document.getElementById('lightColor').value;
         const logoFile = document.getElementById('logoInput').files[0];
+        
         const canvas = document.getElementById('qrCanvas');
+        const holder = document.getElementById('canvasHolder');
         const downloadBtn = document.getElementById('downloadBtn');
 
-        if (!url) {
-            alert('Vui lòng nhập đường link trang web!');
+        if (!url || url === "https://" || url === "http://") {
+            alert('Vui lòng nhập đường link trang web hoặc nội dung hợp lệ!');
             return;
         }
 
-        // Hiện canvas
-        canvas.style.display = "block";
+        // Hiện khung chứa canvas
+        holder.style.display = "block";
 
-        // Tạo mã QR bằng thư viện
+        // Khởi tạo mã QR bằng thư viện QRCode.js
         QRCode.toCanvas(canvas, url, {
-            errorCorrectionLevel: 'H', // Bắt buộc là H (High) để chống lỗi khi chèn logo
-            width: 300,
-            margin: 2,
+            errorCorrectionLevel: 'H', // Mức chống lỗi tối đa (30%)
+            width: 360,                // Độ phân giải cao
+            margin: 2,                 // Viền trắng
             color: {
-                dark: '#000000',  // Màu của QR
-                light: '#ffffff'  // Màu nền
+                dark: darkColor,       
+                light: lightColor      
             }
         }, function (error) {
             if (error) {
                 console.error(error);
-                alert("Đã xảy ra lỗi khi tạo mã QR.");
+                alert("Đã xảy ra lỗi không mong muốn khi sinh mã QR.");
                 return;
             }
 
-            // Nếu người dùng có chọn logo thì tiến hành vẽ logo đè lên giữa canvas
+            // Xử lý chèn Logo
             if (logoFile) {
                 const reader = new FileReader();
                 reader.onload = function(event) {
@@ -144,36 +288,38 @@
                     img.onload = function() {
                         const ctx = canvas.getContext('2d');
                         
-                        // Tính toán kích thước logo (chiếm khoảng 22% diện tích QR để an toàn)
-                        const logoSize = canvas.width * 0.22;
+                        // Kích thước logo = 20% cạnh của mã
+                        const logoSize = canvas.width * 0.20;
                         const x = (canvas.width - logoSize) / 2;
                         const y = (canvas.height - logoSize) / 2;
 
-                        // Tùy chọn: Vẽ một hình vuông màu trắng làm nền cho logo để quét dễ hơn
-                        ctx.fillStyle = '#ffffff';
-                        ctx.fillRect(x - 4, y - 4, logoSize + 8, logoSize + 8);
+                        // Tạo lớp đệm dưới logo
+                        ctx.fillStyle = lightColor;
+                        ctx.fillRect(x - 6, y - 6, logoSize + 12, logoSize + 12);
 
-                        // Vẽ logo lên trên cùng
+                        // Làm mượt hình ảnh
+                        ctx.imageSmoothingEnabled = true;
+                        ctx.imageSmoothingQuality = 'high';
+
+                        // Vẽ logo
                         ctx.drawImage(img, x, y, logoSize, logoSize);
                         
-                        // Hiện nút tải về sau khi vẽ xong
-                        downloadBtn.style.display = "block";
+                        downloadBtn.style.display = "flex";
                     };
                     img.src = event.target.result;
                 };
                 reader.readAsDataURL(logoFile);
             } else {
-                // Nếu không có logo, vẫn hiện nút tải về
-                downloadBtn.style.display = "block";
+                downloadBtn.style.display = "flex";
             }
         });
     }
 
-    function downloadQR() {
+    function downloadPremiumQR() {
         const canvas = document.getElementById('qrCanvas');
         const link = document.createElement('a');
-        link.download = 'ma-qr-cua-toi.png';
-        // Chuyển đổi dữ liệu canvas thành dạng hình ảnh
+        
+        link.download = 'ma-qr-vinh-vien-' + Date.now() + '.png';
         link.href = canvas.toDataURL('image/png');
         link.click();
     }
