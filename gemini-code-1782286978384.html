@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Công Cụ Tạo Mã QR Có Logo Vĩnh Viễn</title>
+    <!-- Sử dụng thư viện qrcode hiện đại hỗ trợ vẽ lên Canvas -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            text-align: left;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        input[type="text"], input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 14px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: background 0.3s;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #219150;
+        }
+        .btn-download {
+            background-color: #2980b9;
+            display: none; /* Ẩn nút tải về cho đến khi có mã QR */
+        }
+        .btn-download:hover {
+            background-color: #1c5980;
+        }
+        #canvas-container {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+        }
+        canvas {
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Tạo Mã QR Cá Nhân</h2>
+    
+    <div class="form-group">
+        <label for="urlInput">Đường link trang web (URL):</label>
+        <input type="text" id="urlInput" placeholder="Ví dụ: https://my-website.com">
+    </div>
+
+    <div class="form-group">
+        <label for="logoInput">Tải lên Logo (Tùy chọn):</label>
+        <input type="file" id="logoInput" accept="image/png, image/jpeg, image/webp">
+    </div>
+
+    <button onclick="generateQR()">Tạo Mã QR</button>
+    <button id="downloadBtn" class="btn-download" onclick="downloadQR()">Tải Ảnh QR Về Máy</button>
+
+    <div id="canvas-container">
+        <canvas id="qrCanvas" style="display:none;"></canvas>
+    </div>
+</div>
+
+<script>
+    function generateQR() {
+        const url = document.getElementById('urlInput').value.trim();
+        const logoFile = document.getElementById('logoInput').files[0];
+        const canvas = document.getElementById('qrCanvas');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        if (!url) {
+            alert('Vui lòng nhập đường link trang web!');
+            return;
+        }
+
+        // Hiện canvas
+        canvas.style.display = "block";
+
+        // Tạo mã QR bằng thư viện
+        QRCode.toCanvas(canvas, url, {
+            errorCorrectionLevel: 'H', // Bắt buộc là H (High) để chống lỗi khi chèn logo
+            width: 300,
+            margin: 2,
+            color: {
+                dark: '#000000',  // Màu của QR
+                light: '#ffffff'  // Màu nền
+            }
+        }, function (error) {
+            if (error) {
+                console.error(error);
+                alert("Đã xảy ra lỗi khi tạo mã QR.");
+                return;
+            }
+
+            // Nếu người dùng có chọn logo thì tiến hành vẽ logo đè lên giữa canvas
+            if (logoFile) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const ctx = canvas.getContext('2d');
+                        
+                        // Tính toán kích thước logo (chiếm khoảng 22% diện tích QR để an toàn)
+                        const logoSize = canvas.width * 0.22;
+                        const x = (canvas.width - logoSize) / 2;
+                        const y = (canvas.height - logoSize) / 2;
+
+                        // Tùy chọn: Vẽ một hình vuông màu trắng làm nền cho logo để quét dễ hơn
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(x - 4, y - 4, logoSize + 8, logoSize + 8);
+
+                        // Vẽ logo lên trên cùng
+                        ctx.drawImage(img, x, y, logoSize, logoSize);
+                        
+                        // Hiện nút tải về sau khi vẽ xong
+                        downloadBtn.style.display = "block";
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(logoFile);
+            } else {
+                // Nếu không có logo, vẫn hiện nút tải về
+                downloadBtn.style.display = "block";
+            }
+        });
+    }
+
+    function downloadQR() {
+        const canvas = document.getElementById('qrCanvas');
+        const link = document.createElement('a');
+        link.download = 'ma-qr-cua-toi.png';
+        // Chuyển đổi dữ liệu canvas thành dạng hình ảnh
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    }
+</script>
+
+</body>
+</html>
